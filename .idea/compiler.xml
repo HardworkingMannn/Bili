@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="Gateway" />
+        <module name="Video" />
+        <module name="UserInfoModule" />
+        <module name="Model" />
+        <module name="Live" />
+        <module name="LoginModule" />
+        <module name="MarkModule" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="xxl-job" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Live" options="-parameters" />
+      <module name="LoginModule" options="-parameters" />
+      <module name="MarkModule" options="-parameters" />
+      <module name="UserInfoModule" options="-parameters" />
+      <module name="Video" options="-parameters" />
+      <module name="bili" options="" />
+      <module name="xxl-job" options="-parameters" />
+    </option>
+  </component>
+</project>

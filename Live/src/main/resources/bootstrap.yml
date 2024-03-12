@@ -1,0 +1,13 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: Live
+  cloud:
+    nacos:
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+      discovery:
+        server-addr: localhost:8848
+

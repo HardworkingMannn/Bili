@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ca7eced1-5097-4aed-a7cf-16d15daa830b" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="AnnotationType" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="localRepository" value="D:\code\Java\maven\apache-maven-3.9.1-bin\apache-maven-3.9.1\repo" />
+        <option name="mavenHome" value="$PROJECT_DIR$/../../../Java/maven/apache-maven-3.9.1-bin/apache-maven-3.9.1" />
+        <option name="useMavenConfig" value="true" />
+        <option name="userSettingsFile" value="D:\code\Java\maven\apache-maven-3.9.1-bin\apache-maven-3.9.1\conf\settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="2cw8znMccZ1qWMR0IchkZ6nD4jz" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "ignore.virus.scanning.warn.message": "true",
+    "jdk.selected.JAVA_MODULE": "17",
+    "last_opened_file_path": "D:/code/idea/project/bili",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "MavenSettings",
+    "spring.configuration.checksum": "1103d551be4e14b5f75ac88c9866a8b8",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\code\idea\project\bili\LoginModule\src\main\resources" />
+      <recent name="D:\code\idea\project\bili\Live\src\main\resources" />
+      <recent name="D:\code\idea\project\bili\Live\src\main\java\org\example" />
+      <recent name="D:\code\idea\project\bili\Video\src\main\java\org\example\video\utils" />
+      <recent name="D:\code\idea\project\bili\LoginModule\src\main\java\com\example\chatroom\mapper" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.example.utils" />
+      <recent name="org.example.mapper" />
+      <recent name="org.example.interceptor" />
+      <recent name="org.example.video.mapper" />
+      <recent name="org.example.Model.entity" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.LiveApplication">
+    <configuration name="BiliApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="bili" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.bili.BiliApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="Gateway" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.gateway.GatewayApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.gateway.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LiveApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Live" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.LiveApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LoginModuleApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="LoginModule" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.chatroom.LoginModuleApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MarkModuleApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="MarkModule" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.MarkModuleApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.example.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="UserInfoModuleApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="UserInfoModule" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.UserInfoModuleApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.example.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VideoApplication (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="Video" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.video.VideoApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.example.video.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VideoApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Video" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.VideoApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.MarkModuleApplication" />
+        <item itemvalue="Spring Boot.VideoApplication (1)" />
+        <item itemvalue="Spring Boot.UserInfoModuleApplication" />
+        <item itemvalue="Spring Boot.GatewayApplication" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ca7eced1-5097-4aed-a7cf-16d15daa830b" name="Changes" comment="" />
+      <created>1709011550968</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1709011550968</updated>
+      <workItem from="1709011550971" duration="26243000" />
+      <workItem from="1709094394568" duration="32970000" />
+      <workItem from="1709195893049" duration="20354000" />
+      <workItem from="1709270851410" duration="36038000" />
+      <workItem from="1709351961025" duration="33640000" />
+      <workItem from="1709446331476" duration="26914000" />
+      <workItem from="1709529045087" duration="15779000" />
+      <workItem from="1709618537431" duration="15547000" />
+      <workItem from="1709707077119" duration="22846000" />
+      <workItem from="1709803521634" duration="13832000" />
+      <workItem from="1709892858110" duration="14000000" />
+      <workItem from="1709966699764" duration="1845000" />
+      <workItem from="1710058282275" duration="15543000" />
+      <workItem from="1710134679360" duration="33047000" />
+      <workItem from="1710218691392" duration="10939000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

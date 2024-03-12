@@ -1,0 +1,12 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: Video
+  cloud:
+    nacos:
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+      discovery:
+        server-addr: localhost:8848
