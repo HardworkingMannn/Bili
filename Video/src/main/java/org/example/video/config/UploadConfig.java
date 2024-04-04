@@ -1,6 +1,7 @@
 package org.example.video.config;
 
 import io.minio.MinioClient;
+import org.example.video.Model.constant.JedisConst;
 import org.example.video.interceptor.TokenInterceptor;
 import org.example.video.ws.DanmuSocket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
+import redis.clients.jedis.Jedis;
 
 @Configuration
 public class UploadConfig implements WebMvcConfigurer {
@@ -36,5 +38,9 @@ public class UploadConfig implements WebMvcConfigurer {
         ServerEndpointExporter exporter = new ServerEndpointExporter();
         exporter.setAnnotatedEndpointClasses(DanmuSocket.class);
         return exporter;
+    }
+    @Bean
+    public Jedis jedis(){
+        return new Jedis(JedisConst.JEDIS_HOST,JedisConst.JEDIS_PORT);
     }
 }

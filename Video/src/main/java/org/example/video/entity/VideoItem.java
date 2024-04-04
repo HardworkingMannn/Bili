@@ -16,6 +16,7 @@ public class VideoItem {
     private String videoLink;
     private String videoTitle;
 
+    private Integer maxTimeStamp;
     private Integer hours;
     private Integer minutes;
     private Integer seconds;

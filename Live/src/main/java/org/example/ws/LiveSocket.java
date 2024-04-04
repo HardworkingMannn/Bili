@@ -32,6 +32,7 @@ public class LiveSocket {
     @Autowired
     private UserInfoMapper userInfoMapper;
     public LiveSocket(){
+
         log.info("执行构造方法");
         userInfoMapper = SpringApplicationContextHolder.getBean(UserInfoMapper.class);
     }

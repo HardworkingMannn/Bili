@@ -103,5 +103,27 @@ public class RabbitMQConfig {
     public Binding deadReleaseBinding(Queue deadReleaseQueue,DirectExchange deadExchange){
         return BindingBuilder.bind(deadReleaseQueue).to(deadExchange).with(RabbitMQConst.DEAD_RELEASE_QUEUE_KEY);
     }
+    @Bean
+    public Queue danmuLoaderQueue(){
+        return new Queue(RabbitMQConst.DANMU_LOADER_QUEUE_NAME,true,false,false);
+    }
+    @Bean
+    public DirectExchange danmuLoaderExchange(){
+        return new DirectExchange(RabbitMQConst.DANMU_LOADER_EXCHANGE_NAME);
+    }
+    @Bean
+    public Binding danmuLoaderBinding(Queue danmuLoaderQueue,DirectExchange danmuLoaderExchange){
+        return BindingBuilder.bind(danmuLoaderQueue).to(danmuLoaderExchange).with(RabbitMQConst.DANMU_LOADER_KEY);
+    }
+
+    @Bean
+    public Queue danmuStoreQueue(){
+        return new Queue(RabbitMQConst.DANMU_STORE_QUEUE_NAME,true,false,false);
+    }
+    @Bean
+    public Binding danmuStoreBinding(Queue danmuStoreQueue,DirectExchange danmuLoaderExchange){
+        return BindingBuilder.bind(danmuStoreQueue).to(danmuLoaderExchange).with(RabbitMQConst.DANMU_STORE_KEY);
+    }
+
 
 }

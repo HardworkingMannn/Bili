@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 @TableName("danmu")
-public class Danmu {
+public class  Danmu {
     @TableId
     private String danmuId;
     private String content;
-    private Long time;
+    private Integer time;
     private String videoItemId;
 }

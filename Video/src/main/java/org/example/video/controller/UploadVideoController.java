@@ -1,12 +1,15 @@
 package org.example.video.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.nacos.api.naming.pojo.healthcheck.impl.Http;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.example.Model.constant.ParentType;
 import org.example.Model.constant.PartitionConst;
@@ -344,5 +347,27 @@ public class UploadVideoController {
         }
         coinsRecordMapper.deleteById(coinsRecord);
         return Result.success();
+    }
+    @GetMapping("/getDanmu")
+    public Result<DanmuVO> getDanmu(Integer requestId, String videoId, Integer timestamp, Integer speed,HttpServletResponse response) throws InterruptedException {
+        int timeout=30;
+        for (int i = 0; i < timeout; i++) {//长轮询
+            long start=System.currentTimeMillis();
+            Result danmu = uploadVideoService.getDanmu(requestId, videoId, timestamp + i);
+            if(danmu.getData()!=null){
+                return danmu;
+            }
+            long end=System.currentTimeMillis();
+            if(i==timeout-1){
+                response.setStatus(204);
+                return Result.success();
+            }
+            Thread.sleep((1000-(end-start))/speed);
+        }
+        return Result.success();
+    }
+    @PostMapping("/sendDanmu")
+    public Result sendDanmu(@RequestBody SendDanmuVO vo){
+        return uploadVideoService.sendDanmu(vo);
     }
 }

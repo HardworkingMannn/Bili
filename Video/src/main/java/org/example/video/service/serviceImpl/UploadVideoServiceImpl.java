@@ -1,5 +1,6 @@
 package org.example.video.service.serviceImpl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.j256.simplemagic.ContentInfo;
@@ -19,6 +20,7 @@ import org.example.video.Model.pojo.Result;
 import org.example.video.config.MinioConfigProperties;
 import org.example.video.constant.FileStorageType;
 import org.example.video.constant.RabbitMQConst;
+import org.example.video.constant.RedisPrefix;
 import org.example.video.entity.*;
 import org.example.video.exception.FileExistsException;
 import org.example.video.mapper.*;
@@ -38,6 +40,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
+import redis.clients.jedis.Jedis;
 import ws.schild.jave.*;
 
 import java.io.*;
@@ -90,6 +93,8 @@ public class UploadVideoServiceImpl implements UploadVideoService {
     private UserInfoMapper userInfoMapper;
     @Autowired
     private EverydayPlaysMapper everydayPlaysMapper;
+    @Autowired
+    private DanmuMapper danmuMapper;
 
     @Override
     public Result<VideoChunkVO> uploadChunk(MultipartFile file, int chunkIndex, int chunkTotal, String name,String extension){
@@ -211,6 +216,93 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         }
         return Result.success();
     }
+    @Autowired
+    private Jedis jedis;
+    @Override
+    public Result<DanmuVO> getDanmu(Integer requestId, String videoId, Integer timestamp) {//可以选择建立videoId和timestamp的索引
+        //还得判断这个时间戳是否是正确的，在缓存中判断，还得考虑缓存一致性问题
+        String lenKey = RedisPrefix.VIDEO_LENGTH + videoId;
+        String lenLock=RedisPrefix.VIDEO_LENGTH_LOCK+videoId;
+        if(!jedis.exists(lenKey)){
+            //从数据库中装载
+            try {
+                while (jedis.setnx(lenLock, "") == 0) ;//没有设置锁超时，所以不用担心删除的锁不是自己的
+                if (!jedis.exists(lenKey)) {
+                    //装载
+                    jedis.set(lenKey,videoItemMapper.selectById(videoId).getMaxTimeStamp().toString());
+                }
+            }finally {
+                jedis.del(lenLock);
+            }
+        }
+        int maxTimeStamp = Integer.parseInt(jedis.get(lenKey));
+        if(maxTimeStamp<timestamp){
+            return Result.fail("时间戳无效");
+        }
+        //先在redis中获取
+        int backZero = getBackZero(timestamp);
+        String intervalLockKey=RedisPrefix.INTERVAL+videoId+"_"+backZero;
+        if(jedis.setnx(intervalLockKey,"")==0){//原子操作，这个key是来验证是否存在区间数据，所以在区间数据被删除时，也需要删除这个
+            //同步添加区间数据
+            loadInterval(backZero,videoId);
+        }
+        //还得验证是否需要预热下一区间的数据
+        if(backZero+10<=maxTimeStamp&&timestamp%10==8){//当以8结尾时
+            //预热，添加到消息队列中
+            //验证下一个区间是否已经添加
+            String nextIntervalLockKey=RedisPrefix.INTERVAL+videoId+"_"+(backZero+10);
+            if(jedis.setnx(nextIntervalLockKey,"")==0){
+                //异步添加区间数据
+                LoadIntervalDTO dto = new LoadIntervalDTO(backZero+10, videoId);
+                rabbitTemplate.convertAndSend(RabbitMQConst.DANMU_LOADER_EXCHANGE_NAME,RabbitMQConst.DANMU_LOADER_KEY,dto);
+            }
+        }
+        String goal=RedisPrefix.SINGLE_POINT+videoId+"_"+timestamp;
+        while(!jedis.exists(goal));//空转，等待装载数据
+        //返回的是json数据，直接返回
+        List<String> lrange = jedis.lrange(goal, 0, -1);
+        if(lrange.size()!=0) {
+            DanmuVO vo = new DanmuVO();
+            vo.setRequestId(requestId);
+            vo.setTimestamp(timestamp);
+            vo.setVideoId(videoId);
+            vo.setDanmuList(lrange);
+            return Result.success(vo);
+        }
+        return Result.success();    //区分没有数据和有数据的情况
+    }
+
+    @Override
+    public Result sendDanmu(SendDanmuVO vo) {
+        String goal=RedisPrefix.SINGLE_POINT+vo.getVideoId()+"_"+vo.getTimestamp();
+        if(jedis.exists(goal)){
+            DanmuOutline outline = new DanmuOutline();
+            outline.setContent(vo.getContent());
+            outline.setTime(vo.getTimestamp());
+            jedis.rpush(goal,JSON.toJSONString(outline));
+        }
+        //异步写入数据库
+        rabbitTemplate.convertAndSend(RabbitMQConst.DANMU_LOADER_EXCHANGE_NAME,RabbitMQConst.DANMU_STORE_KEY,vo);
+        return Result.success();
+    }
+
+    public void loadInterval(int backZero,String videoId){
+        //防止重复查询
+        for (int i = 0; i < 10; i++) {
+            String singlePointKey=RedisPrefix.SINGLE_POINT+videoId+"_"+(backZero+i);
+            List<Danmu> danmus = danmuMapper.selectList(Wrappers.<Danmu>lambdaQuery().eq(Danmu::getVideoItemId, videoId).eq(Danmu::getTime, backZero + i));
+            String[] list = (String[])(danmus.stream().map(danmu -> {
+                DanmuOutline outline = new DanmuOutline();
+                BeanUtils.copyProperties(danmu, outline);
+                return JSON.toJSONString(outline);
+            }).toArray());
+            jedis.rpush(singlePointKey,list);
+        }
+    }
+    public int getBackZero(Integer timestamp){
+        return timestamp-timestamp%10;
+    }
+
     public void encodeMp4(String filename,String newname){
         log.info("{}转码中",filename);
         File source = new File(localPath+filename);

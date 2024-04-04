@@ -18,5 +18,14 @@ public class RabbitMQConst {
     public final static String DEAD_RELEASE_QUEUE_NAME="dead_release_queue";
     public final static String DEAD_RELEASE_QUEUE_KEY="dead_release";
 
+
+    public final static String DANMU_LOADER_QUEUE_NAME="danmu_loader";
+    public final static String DANMU_LOADER_KEY="danmu_loader_key";
+    public final static String DANMU_LOADER_EXCHANGE_NAME="danmu_loader_exchange";
+
+    public final static String DANMU_STORE_QUEUE_NAME="danmu_store";
+    public final static String DANMU_STORE_KEY="danmu_store_key";
+
+
 }
 
