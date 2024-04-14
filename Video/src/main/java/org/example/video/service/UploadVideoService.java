@@ -13,6 +13,7 @@ import java.util.List;
 
 public interface UploadVideoService {
     public Result<VideoChunkVO> uploadChunk(@RequestPart("file") MultipartFile file, int chunkIndex, int chunkTotal, String name, String extension);
+    public Result cancelUploadChunk(String name);
 
     public Result<String> uploadImg(@RequestPart("file") MultipartFile file);
 

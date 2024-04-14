@@ -78,6 +78,10 @@ public class UploadVideoController {
     public Result<VideoChunkVO> uploadChunk(@RequestPart("file")MultipartFile file, Integer chunkIndex, Integer chunkTotal, @RequestParam(required = false) String name, String extension){
         return uploadVideoService.uploadChunk(file, chunkIndex, chunkTotal, name,extension);
     }
+    @PostMapping("/cancelUpload")
+    public Result cancelUploadChunk(String name){
+        return uploadVideoService.cancelUploadChunk(name);
+    }
     @PostMapping("/img")
     @Operation(summary = "上传图片",parameters = {
             @Parameter(name="file",description = "上传的图片文件")

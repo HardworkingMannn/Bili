@@ -6,12 +6,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableDiscoveryClient
 @MapperScan("org.example.video.mapper")
 @EnableFeignClients(basePackages = "org.example.video.utils")
 @EnableAspectJAutoProxy
+@EnableAsync
 public class VideoApplication {
     public static void main(String[] args) {
         SpringApplication.run(VideoApplication.class,args);

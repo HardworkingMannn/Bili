@@ -17,7 +17,9 @@ import org.example.Model.entity.*;
 import org.example.Model.pojo.*;
 import org.example.Model.pojo.Time;
 import org.example.video.Model.pojo.Result;
+import org.example.video.async.VideoAsyncHandler;
 import org.example.video.config.MinioConfigProperties;
+import org.example.video.config.RedisExpireTime;
 import org.example.video.constant.FileStorageType;
 import org.example.video.constant.RabbitMQConst;
 import org.example.video.constant.RedisPrefix;
@@ -27,9 +29,12 @@ import org.example.video.mapper.*;
 import org.example.video.pojo.*;
 import org.example.video.pojo.VideoInfo;
 import org.example.video.service.UploadVideoService;
+import org.example.video.utils.JedisUtil;
 import org.example.video.utils.ThreadUtils;
 import org.example.video.utils.UserInfoClient;
 import org.example.video.utils.VideoUtil;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,7 +42,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 import redis.clients.jedis.Jedis;
@@ -49,10 +56,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.RandomAccess;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -65,6 +69,8 @@ public class UploadVideoServiceImpl implements UploadVideoService {
     private String bucket;
     @Value("${minio.imgbucket}")
     private String imgBucket;
+    @Autowired
+    private MinioConfigProperties minioConfigProperties;
     @Autowired
     private FileBelongMapper fileBelongMapper;
     @Autowired
@@ -95,11 +101,40 @@ public class UploadVideoServiceImpl implements UploadVideoService {
     private EverydayPlaysMapper everydayPlaysMapper;
     @Autowired
     private DanmuMapper danmuMapper;
+    @Autowired
+    private VideoAsyncHandler handler;
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Override
+    @Transactional
     public Result<VideoChunkVO> uploadChunk(MultipartFile file, int chunkIndex, int chunkTotal, String name,String extension){
-        System.out.println(chunkIndex);
-        System.out.println(chunkTotal);
+        //检测是否为当前用户正在上传的文件，如果不是，返回失败
+        Integer usedId = ThreadUtils.get();
+        if(name!=null&&!checkExist(name, usedId)){
+            log.info("用户已经在上传其他文件，一次只能上传一种文件");
+            //返回现在的文件名和进度
+            VideoChunkVO t = new VideoChunkVO();
+            Set<String> keys = JedisUtil.getJedis().keys(usedId + ":*");
+            for (String key : keys) {
+                t.setFilename(handleFilenameInRedis(key));
+                String s = JedisUtil.getJedis().get(key);
+                String[] split = s.split("/");
+                Integer nowIndex=Integer.parseInt(split[0]);
+                Integer total=Integer.parseInt(split[1]);
+                t.setProcessIndex(nowIndex);    //返回目前进度
+                t.setTotalProcess(total);       //和总进度
+                t.setType(1); //代表文件无效
+                break;
+            }
+            return Result.success(t);   //上传错误，返回现在上传的文件名
+        }
+        //检测chunkTotal是否有问题
+        //检测chunkIndex是否有问题
+        Result<VideoChunkVO> result = getChunkTotal(name, usedId, chunkTotal, chunkIndex);
+        if(result!=null){
+            return result;
+        }
         int userId= ThreadUtils.get();
         if(chunkTotal<=0){
             return Result.fail("分块总数为负数或0");
@@ -107,17 +142,12 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         if(chunkIndex<0||chunkIndex>=chunkTotal){
             return Result.fail("分块序号有问题");
         }
-        FileBelong one=new FileBelong();
+
         if(name==null){
             if(chunkIndex==0){
                 name=UUID.randomUUID().toString();
                 //把这个文件标识为这个用户的
-                FileBelong entity = new FileBelong();
-                entity.setUserId(userId);
-                entity.setFilename(name);
-                entity.setStatus(false);
-                fileBelongMapper.insert(entity);
-
+                handler.newFileUpload(name,userId);
                 //同时使用延迟队列检测到一定时间时文件是否完成传输，如果没有就删除minio中整个文件夹
                 RemoveDelayedFile removeFile = new RemoveDelayedFile();
                 removeFile.setUserId(userId);
@@ -128,16 +158,6 @@ public class UploadVideoServiceImpl implements UploadVideoService {
 
             }else{
                 return Result.fail("文件没有名字");
-            }
-        }else {
-            //还得检测这个文件是不是该用户的
-             one= fileBelongMapper.selectList(Wrappers.<FileBelong>lambdaQuery().eq(FileBelong::getUserId, userId).eq(FileBelong::getFilename, name)).get(0);
-            if (one == null) {
-                log.info("该文件名并不属于该用户");
-                return Result.fail("该文件名并不属于该用户");
-            }
-            if(one.getStatus()){
-                return Result.fail("该文件已经完成传输");
             }
         }
         File file1 = new File(localPath + name + chunkIndex + ".temp");
@@ -178,8 +198,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
                 return Result.fail("合并失败");
             }
             //完成合并，修改数据库内表的状态
-            one.setStatus(true);
-            fileBelongMapper.updateById(one);
+
 
             //然后把延迟队列中的对应的定时删除任务删除
             RemoveDelayed delayed = new RemoveDelayed();
@@ -188,6 +207,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
             rabbitTemplate.convertAndSend(RabbitMQConst.MINIO_FILE_EXCHANGE_NAME,RabbitMQConst.REMOVE_DELAYED_QUEUE_KEY,delayed);
 
             //获得经验
+            //todo 远程调用，还得搞个分布式事务
             infoClient.addExp(new Pair(3+"",ThreadUtils.get()));
 
             VideoChunkVO vo = new VideoChunkVO();
@@ -195,15 +215,62 @@ public class UploadVideoServiceImpl implements UploadVideoService {
             vo.setFilename(name);
             BeanUtils.copyProperties(time,vo);
             //插入存储记录
-            fileStorageMapper.insert(new FileStorage(vo.getPath(), FileStorageType.VIDEO_TYPE));
+            handler.updateFileUploadStatus(name,vo.getPath());  //异步更新数据库
+            //最后删除redis
+            JedisUtil.getJedis().del(usedId+":"+name);
             return Result.success(vo);
         }
         if(chunkIndex==0){
             VideoChunkVO vo = new VideoChunkVO();
             vo.setFilename(name);
+            //把name插入redis中，之后作为检测
+            JedisUtil.getJedis().setex(usedId+":"+name,minioConfigProperties.getTtl(),"0/"+chunkTotal);//值为目前进度
             return Result.success(vo);
         }
+        JedisUtil.getJedis().setex(usedId+":"+name,minioConfigProperties.getTtl(),chunkIndex+"/"+chunkTotal);
         return Result.success();
+    }
+
+    @Override
+    @Transactional
+    public Result cancelUploadChunk(String name) {
+        Integer usedId=ThreadUtils.get();
+        if(JedisUtil.getJedis().exists(usedId+":"+name)) {
+            //说明还没有上传完成
+            JedisUtil.getJedis().del(usedId + ":" + name);
+            //异步
+            handler.delFileUpload(name,ThreadUtils.get());
+        }else{
+            //上传完成，不能删除
+            return Result.fail("已经上传完成，不能删除");
+        }
+        //文件过了过期时间会自动删除的
+        //还得删除数据库中这个文件的归属
+
+        return Result.success();
+    }
+
+    public String handleFilenameInRedis(String key){
+        int begin = key.indexOf(":");
+        return key.substring(begin+1);
+    }
+    public boolean checkExist(String name,Integer usedId){//检测文件是否存在
+        return JedisUtil.getJedis().exists(usedId+":"+name);
+    }
+    public Result<VideoChunkVO> getChunkTotal(String name,Integer usedId,Integer chunkTotal,Integer chunkIndex){
+        String s = JedisUtil.getJedis().get(usedId + ":" + name);
+        String[] split = s.split("/");
+        int trueTotal = Integer.parseInt(split[1]);
+        int trueIndex = Integer.parseInt(split[0]);
+        if(chunkTotal!= trueTotal ||chunkIndex!= trueIndex){
+            log.info("总块数或index不正确,传输的块数{}!=正确块数{}，索引{}!=正确索引{}",chunkTotal,trueTotal,chunkIndex,trueIndex);
+            VideoChunkVO t = new VideoChunkVO();
+            t.setType(2);
+            t.setTotalProcess(trueTotal);
+            t.setProcessIndex(trueIndex);
+            return Result.success(t);
+        }
+        return null;
     }
     public Result delVideo(String filename,String extension){
         RemoveObjectArgs build = RemoveObjectArgs.builder().bucket(bucket).object(ThreadUtils.get() + "/" + filename + "." + extension).build();
@@ -652,40 +719,42 @@ public class UploadVideoServiceImpl implements UploadVideoService {
             rabbitTemplate.convertAndSend(RabbitMQConst.MINIO_FILE_EXCHANGE_NAME,RabbitMQConst.REMOVE_FILE_QUEUE_KEY,file);
         }*/
     }
+    @Transactional
     public Result like(String videoId){
-        Video video = videoMapper.selectById(videoId);
-        if(video==null){
-            return Result.fail("视频无效");
-        }
-        //todo 添加喜欢的记录
-        LikeRecord one = likeRecordMapper.selectOne(Wrappers.<LikeRecord>lambdaQuery().eq(LikeRecord::getUserId, ThreadUtils.get()).eq(LikeRecord::getVideoId, videoId));
-        if(one!=null){
+        Jedis jedis = JedisUtil.getJedis();
+        //用redis保证幂等性，如果redis中没有就去数据库里查找
+        //先检测videoId是否存在,直接使用布隆过滤器吧
+        /*String videoKey="video_"+videoId;
+        if(!jedis.exists(videoKey)){
+            //获取分布式锁
+            String videoLock=videoKey+"_lock";
+            RLock lock = redissonClient.getLock(videoLock);
+            lock.lock();
+            try {
+                if (!jedis.exists(videoKey)) {
+
+                }
+            }finally {
+                lock.unlock();
+            }
+        }*/
+
+        Integer userId=ThreadUtils.get();
+        String likeKey="vlike_"+userId+"_"+videoId;
+        String vlikeKey="vlike_"+videoId;
+
+        if(jedis.exists(likeKey)){
             return Result.fail("已经喜欢了");
-        }
-        LikeRecord likeRecord = new LikeRecord();
-        likeRecord.setVideoId(videoId);
-        likeRecord.setUserId(ThreadUtils.get());
-        likeRecord.setTime(LocalDateTime.now());
-        likeRecordMapper.insert(likeRecord);
+        }else{
+            if(jedis.exists(vlikeKey)){
+                jedis.incr(vlikeKey);
+                jedis.setex(likeKey, RedisExpireTime.LIKE,"");
+            }else{
+                //得使用分布式锁获取
 
-        //更新通知
-       /* LikeNotify likeNotify = notifyMapper.selectOne(Wrappers.<LikeNotify>lambdaQuery().eq(LikeNotify::getUserId, video.getUserId()));
-        if(likeNotify==null){
-            likeNotify=new LikeNotify();
-            likeNotify.setUserId(ThreadUtils.get());
-            notifyMapper.insert(likeNotify);
+            }
         }
-        likeNotify.setParentId(videoId);
-        likeNotify.setParentType(ParentType.video);
-        likeNotify.setTime(LocalDateTime.now());
-        notifyMapper.up(likeNotify);*/
-        //TODO 还得更新通知数量和用户信息里的点赞
-        UserInfo data = infoClient.getUserInfo(ThreadUtils.get()).getData();
-        data.setLikes(data.getLikes()+1);
-        infoClient.updateInfo(data);
 
-        video.setLikes(video.getLikes()+1);
-        videoMapper.updateById(video);
         return Result.success();
     }
     public Result giveCoins(String videoId,Integer count){

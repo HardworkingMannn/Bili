@@ -4,23 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ca7eced1-5097-4aed-a7cf-16d15daa830b" name="Changes" comment="弹幕视频直播网站后端开发">
-      <change afterPath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/entity/DanmuOutline.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/pojo/DanmuVO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/pojo/LoadIntervalDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/pojo/SendDanmuVO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/constant/RedisPrefix.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/utils/DanmuLoader.java" afterDir="false" />
+    <list default="true" id="ca7eced1-5097-4aed-a7cf-16d15daa830b" name="Changes" comment="改进弹幕发送为轮询">
+      <change afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/async/VideoAsyncHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/RedisExpireTime.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/RedissonConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/utils/ScalableBloomFilter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Live/src/main/java/org/example/ws/LiveSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/Live/src/main/java/org/example/ws/LiveSocket.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/entity/Danmu.java" beforeDir="false" afterPath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/entity/Danmu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/RabbitMQConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/RabbitMQConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/UploadConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/UploadConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/constant/RabbitMQConst.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/constant/RabbitMQConst.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/VideoApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/VideoApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/controller/UploadVideoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/controller/UploadVideoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/entity/VideoItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/entity/VideoItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/pojo/VideoChunkVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/pojo/VideoChunkVO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/service/UploadVideoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/service/UploadVideoService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/service/serviceImpl/UploadVideoServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/service/serviceImpl/UploadVideoServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -218,7 +213,8 @@
       <workItem from="1710134679360" duration="33047000" />
       <workItem from="1710218691392" duration="11338000" />
       <workItem from="1711693786959" duration="583000" />
-      <workItem from="1712221021333" duration="9143000" />
+      <workItem from="1712221021333" duration="11275000" />
+      <workItem from="1713082428275" duration="9926000" />
     </task>
     <task id="LOCAL-00001" summary="弹幕视频直播网站后端开发">
       <created>1710255526119</created>
@@ -227,14 +223,40 @@
       <option name="project" value="LOCAL" />
       <updated>1710255526119</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="改进弹幕发送为轮询">
+      <created>1712232427926</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1712232427926</updated>
+    </task>
+    <task id="LOCAL-00003" summary="改进弹幕发送为轮询">
+      <created>1712232714493</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1712232714493</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="弹幕视频直播网站后端开发" />
-    <option name="LAST_COMMIT_MESSAGE" value="弹幕视频直播网站后端开发" />
+    <MESSAGE value="改进弹幕发送为轮询" />
+    <option name="LAST_COMMIT_MESSAGE" value="改进弹幕发送为轮询" />
   </component>
 </project>
