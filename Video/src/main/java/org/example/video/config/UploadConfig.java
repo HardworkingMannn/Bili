@@ -3,6 +3,7 @@ package org.example.video.config;
 import io.minio.MinioClient;
 import org.example.video.Model.constant.JedisConst;
 import org.example.video.interceptor.TokenInterceptor;
+import org.example.video.utils.ScalableBloomFilter;
 import org.example.video.ws.DanmuSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -42,5 +43,9 @@ public class UploadConfig implements WebMvcConfigurer {
     @Bean
     public Jedis jedis(){
         return new Jedis(JedisConst.JEDIS_HOST,JedisConst.JEDIS_PORT);
+    }
+    @Bean
+    public ScalableBloomFilter scalableBloomFilter(){
+        return new ScalableBloomFilter("global");
     }
 }
