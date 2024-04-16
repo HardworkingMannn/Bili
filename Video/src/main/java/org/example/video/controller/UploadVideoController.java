@@ -1,16 +1,15 @@
 package org.example.video.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.nacos.api.naming.pojo.healthcheck.impl.Http;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.example.Model.annotation.AddFilter;
+import org.example.Model.annotation.GetFilter;
 import org.example.Model.constant.ParentType;
 import org.example.Model.constant.PartitionConst;
 import org.example.Model.entity.*;
@@ -94,11 +93,13 @@ public class UploadVideoController {
     }
     @PostMapping("/submit")
     @Operation(summary = "视频投稿接口")
+    @AddFilter
     public Result submit(@RequestBody SubmitDTO dto){
         return uploadVideoService.submit(dto);
     }
     @PostMapping("/getVideo/{videoId}")
     @Operation(summary = "进入视频页面")
+    @GetFilter
     public Result<VideoContent> getVideo(@PathVariable String videoId){
         return uploadVideoService.getVideo(videoId);
     }
@@ -121,22 +122,26 @@ public class UploadVideoController {
     }
     @GetMapping("/getVideoOutline")
     @Operation(summary = "获取视频概览，内部接口")
+    @GetFilter
     public Result<VideoOutline> getVideoOutline(String videoId){
         VideoOutline outline = uploadVideoService.getVideoOutline(videoId);
         return Result.success(outline);
     }
     @GetMapping("/like")
     @Operation(summary = "喜欢视频")
+    @GetFilter
     public Result like(String videoId){
         return uploadVideoService.like(videoId);
     }
     @GetMapping("/giveCoins")
     @Operation(summary = "投币")
+    @GetFilter
     public Result giveCoins(String videoId,Integer count){
         return uploadVideoService.giveCoins(videoId, count);
     }
     @GetMapping("/addMark")
     @Operation(summary = "添加评论，内部接口")
+    @GetFilter
     public Result addMark(String videoId){
         return uploadVideoService.addMark(videoId);
     }
@@ -187,9 +192,7 @@ public class UploadVideoController {
                 log.info("redis的热度列表为空，需要获取");
                 videoHandler.WeightUpdater();
             }
-            list = jedis.zrange(VideoHandler.WEIGHT_LIST, (pageNum-1) * pageSize, pageNum * pageSize-1).stream().map(json -> {
-                return JSON.parseObject(json, VideoOutline.class);
-            }).toList();
+            list =videoHandler.getHomePageVideo(pageNum,pageSize,jedis);
         }catch(Exception e){
             e.printStackTrace();
         }finally {
@@ -226,6 +229,7 @@ public class UploadVideoController {
     }
     @GetMapping("/getEverydayPlay")
     @Operation(summary = "获取播放量")
+    //todo
     public PageResult<List<EverydayPlays>> getEverydayPlay(Integer pageNum,Integer pageSize){
         Page<EverydayPlays> page = new Page<>(pageNum, pageSize);
         Page<EverydayPlays> page1 = everydayPlaysMapper.selectPage(page, Wrappers.<EverydayPlays>lambdaQuery().eq(EverydayPlays::getUserId, ThreadUtils.get()).orderByDesc(EverydayPlays::getDate));
@@ -301,6 +305,7 @@ public class UploadVideoController {
     }
     @GetMapping("/delVideos")
     @Operation(summary = "视频管理的删除视频")
+    @GetFilter
     public Result delVideo(String videoId){
         videoMapper.deleteById(videoId);
         return Result.success();
@@ -326,6 +331,7 @@ public class UploadVideoController {
     }
     @GetMapping("/unlike")
     @Operation(summary = "取消点赞")
+    @GetFilter
     public Result unlike(String videoId){
         Video video = videoMapper.selectById(videoId);
         if(video!=null&&likeRecordMapper.exists(Wrappers.<LikeRecord>lambdaQuery().eq(LikeRecord::getUserId,ThreadUtils.get()).eq(LikeRecord::getVideoId,videoId))){
@@ -340,6 +346,7 @@ public class UploadVideoController {
     }
     @GetMapping("/uncoins")
     @Operation(summary = "取消投币")
+    @GetFilter
     public Result uncoins(String videoId){
         Video video = videoMapper.selectById(videoId);
         CoinsRecord coinsRecord = coinsRecordMapper.selectOne(Wrappers.<CoinsRecord>lambdaQuery().eq(CoinsRecord::getUserId, ThreadUtils.get()).eq(CoinsRecord::getVideoId, videoId).gt(CoinsRecord::getCoins, 1));
@@ -353,6 +360,7 @@ public class UploadVideoController {
         return Result.success();
     }
     @GetMapping("/getDanmu")
+    @GetFilter
     public Result<DanmuVO> getDanmu(Integer requestId, String videoId, Integer timestamp, Integer speed,HttpServletResponse response) throws InterruptedException {
         int timeout=30;
         for (int i = 0; i < timeout; i++) {//长轮询

@@ -11,6 +11,7 @@ import com.rabbitmq.client.Channel;
 import io.minio.*;
 import io.minio.errors.*;
 import lombok.extern.slf4j.Slf4j;
+import org.example.Model.annotation.GetFilter;
 import org.example.Model.constant.LikeNotifyConst;
 import org.example.Model.constant.ParentType;
 import org.example.Model.entity.*;
@@ -272,6 +273,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         }
         return null;
     }
+    @Transactional
     public Result delVideo(String filename,String extension){
         RemoveObjectArgs build = RemoveObjectArgs.builder().bucket(bucket).object(ThreadUtils.get() + "/" + filename + "." + extension).build();
         try {
@@ -338,7 +340,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         }
         return Result.success();    //区分没有数据和有数据的情况
     }
-
+    @Transactional
     @Override
     public Result sendDanmu(SendDanmuVO vo) {
         String goal=RedisPrefix.SINGLE_POINT+vo.getVideoId()+"_"+vo.getTimestamp();
@@ -400,7 +402,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         }
         log.info("{}转码完成",newname);
     }
-
+    @Transactional
     @Override
     public Result<String> uploadImg(MultipartFile file) {
         String filename = file.getOriginalFilename();
@@ -421,7 +423,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         fileStorageMapper.insert(new FileStorage(path, FileStorageType.IMG_TYPE));
         return Result.success(path);
     }
-
+    @Transactional
     @Override
     public Result submit(SubmitDTO dto) {
         int i = checkVideo(dto.getVideos());
@@ -495,7 +497,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         if(!video.getIsPublished()){
             return Result.fail("视频未发布");
         }
-        //增加播放量：
+        //增加播放量
         video.setPlays(video.getPlays()+1);
         videoMapper.updateById(video);
         if(everydayPlaysMapper.exists(Wrappers.<EverydayPlays>lambdaQuery().eq(EverydayPlays::getUserId,video.getUserId()).eq(EverydayPlays::getDate,LocalDate.now()))) {
@@ -575,7 +577,6 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         }
         return PageResult.success(list,page1.getTotal(),pageNum,pageSize);
     }
-
     public VideoOutline getVideoOutline(String videoId){//获取视频的概览
         Video video = videoMapper.selectById(videoId);
         if(video==null){
@@ -589,7 +590,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         outline.setName(infoClient.getUserInfo(video.getUserId()).getData().getUserName());
         return outline;
     }
-
+    @Transactional
     public void sendReleaseMessage(LocalDateTime time,String videoId){
         if(time.isBefore(LocalDateTime.now())){
             return;
@@ -614,6 +615,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         FileStorage one = fileStorageMapper.selectOne(Wrappers.<FileStorage>lambdaQuery().eq(FileStorage::getFilename, filename).eq(FileStorage::getFileType, filetype));
         return one!=null;
     }
+    @Transactional
     public void uploadImg(String minioPath,InputStream inputStream,String extension) throws IOException, ServerException, InvalidBucketNameException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         PutObjectArgs args = PutObjectArgs.builder()
                 .bucket(imgBucket)
@@ -623,7 +625,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
                 .build();
         client.putObject(args);
     }
-
+    @Transactional
     public void uploadFile(String minioPath,String filePath,String extension) throws IOException, ServerException, InvalidBucketNameException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         //先检测是否存在切片
         log.info("传输分块文件到路径{}",minioPath);
@@ -723,21 +725,6 @@ public class UploadVideoServiceImpl implements UploadVideoService {
     public Result like(String videoId){
         Jedis jedis = JedisUtil.getJedis();
         //用redis保证幂等性，如果redis中没有就去数据库里查找
-        //先检测videoId是否存在,直接使用布隆过滤器吧
-        /*String videoKey="video_"+videoId;
-        if(!jedis.exists(videoKey)){
-            //获取分布式锁
-            String videoLock=videoKey+"_lock";
-            RLock lock = redissonClient.getLock(videoLock);
-            lock.lock();
-            try {
-                if (!jedis.exists(videoKey)) {
-
-                }
-            }finally {
-                lock.unlock();
-            }
-        }*/
 
         Integer userId=ThreadUtils.get();
         String likeKey="vlike_"+userId+"_"+videoId;
@@ -746,17 +733,45 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         if(jedis.exists(likeKey)){
             return Result.fail("已经喜欢了");
         }else{
+            //还得从数据库里查
+            //还得加锁
+            RLock lock = redissonClient.getLock(likeKey + "_lock");
+            try{
+                lock.lock();
+                if(jedis.exists(likeKey)) {
+                    if (likeRecordMapper.exists(Wrappers.<LikeRecord>lambdaQuery().eq(LikeRecord::getVideoId, videoId).eq(LikeRecord::getUserId, userId))) {
+                        jedis.setex(likeKey, RedisExpireTime.LIKE,"");
+                        return Result.fail("已经喜欢了");
+                    }
+                }
+            }finally {
+                lock.unlock();
+            }
             if(jedis.exists(vlikeKey)){
                 jedis.incr(vlikeKey);
                 jedis.setex(likeKey, RedisExpireTime.LIKE,"");
             }else{
                 //得使用分布式锁获取
-
+                RLock lock1 = redissonClient.getLock(vlikeKey + "_lock");
+                try{
+                    lock.lock();
+                    if(jedis.exists(vlikeKey)){
+                        Video video = videoMapper.selectOne(Wrappers.<Video>lambdaQuery().select(Video::getLikes).eq(Video::getVideoId, videoId));
+                        jedis.setex(vlikeKey,RedisExpireTime.VIDEO_LIKE,""+video.getLikes());
+                    }
+                }finally {
+                    lock1.unlock();
+                }
+                jedis.incr(vlikeKey);
+                jedis.setex(likeKey, RedisExpireTime.LIKE,"");
             }
+            //异步增加
+            handler.updateLike(videoId,userId);
         }
 
         return Result.success();
     }
+    @Transactional
     public Result giveCoins(String videoId,Integer count){
         Video video = videoMapper.selectById(videoId);
         if(video==null){
@@ -793,7 +808,7 @@ public class UploadVideoServiceImpl implements UploadVideoService {
         videoMapper.updateById(video);
         return Result.success();
     }
-
+    @Transactional
     public Result addMark(String videoId){
         Video video = videoMapper.selectById(videoId);
         if(video==null){

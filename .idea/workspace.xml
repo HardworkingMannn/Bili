@@ -4,10 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ca7eced1-5097-4aed-a7cf-16d15daa830b" name="Changes" comment="防止视频洪泛传输的应对，更新操作放在缓存的优化">
+    <list default="true" id="ca7eced1-5097-4aed-a7cf-16d15daa830b" name="Changes" comment="编写了可拓展的布隆过滤器，用于解决缓存穿透">
+      <change afterPath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/annotation/AddFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Model/src/main/java/org/example/Model/annotation/GetFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/aop/BloomFilterAOP.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/RedisExpireTime.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/RedisExpireTime.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/UploadConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/config/UploadConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/utils/ScalableBloomFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/utils/ScalableBloomFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/controller/UploadVideoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/controller/UploadVideoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/service/serviceImpl/UploadVideoServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/service/serviceImpl/UploadVideoServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Video/src/main/java/org/example/video/utils/VideoHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/Video/src/main/java/org/example/video/utils/VideoHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,9 +23,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="AnnotationType" />
         <option value="Interface" />
         <option value="Class" />
+        <option value="AnnotationType" />
       </list>
     </option>
   </component>
@@ -207,7 +213,9 @@
       <workItem from="1711693786959" duration="583000" />
       <workItem from="1712221021333" duration="11275000" />
       <workItem from="1713082428275" duration="10062000" />
-      <workItem from="1713108546807" duration="2581000" />
+      <workItem from="1713108546807" duration="3393000" />
+      <workItem from="1713165053141" duration="19000" />
+      <workItem from="1713255155759" duration="5463000" />
     </task>
     <task id="LOCAL-00001" summary="弹幕视频直播网站后端开发">
       <created>1710255526119</created>
@@ -237,7 +245,14 @@
       <option name="project" value="LOCAL" />
       <updated>1713095968313</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="编写了可拓展的布隆过滤器，用于解决缓存穿透">
+      <created>1713111253368</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1713111253368</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -258,6 +273,7 @@
     <MESSAGE value="弹幕视频直播网站后端开发" />
     <MESSAGE value="改进弹幕发送为轮询" />
     <MESSAGE value="防止视频洪泛传输的应对，更新操作放在缓存的优化" />
-    <option name="LAST_COMMIT_MESSAGE" value="防止视频洪泛传输的应对，更新操作放在缓存的优化" />
+    <MESSAGE value="编写了可拓展的布隆过滤器，用于解决缓存穿透" />
+    <option name="LAST_COMMIT_MESSAGE" value="编写了可拓展的布隆过滤器，用于解决缓存穿透" />
   </component>
 </project>

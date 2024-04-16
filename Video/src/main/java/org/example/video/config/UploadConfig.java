@@ -45,7 +45,7 @@ public class UploadConfig implements WebMvcConfigurer {
         return new Jedis(JedisConst.JEDIS_HOST,JedisConst.JEDIS_PORT);
     }
     @Bean
-    public ScalableBloomFilter scalableBloomFilter(){
-        return new ScalableBloomFilter("global");
+    public ScalableBloomFilter videoScalableBloomFilter(){
+        return new ScalableBloomFilter("video");
     }
 }
